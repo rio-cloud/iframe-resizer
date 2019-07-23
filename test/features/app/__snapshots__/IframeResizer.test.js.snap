@@ -1,0 +1,47 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`IframeResizer renders an iframe with no url 1`] = `
+<div
+  className="embed-responsive"
+  style={
+    Object {
+      "height": 550,
+      "overflow": "hidden",
+      "scrolling": "no",
+    }
+  }
+>
+  <iframe
+    className="embed-responsive-item"
+    src=""
+    style={
+      Object {
+        "minHeight": "100%",
+      }
+    }
+  />
+</div>
+`;
+
+exports[`IframeResizer renders an iframe with some url 1`] = `
+<div
+  className="embed-responsive"
+  style={
+    Object {
+      "height": 550,
+      "overflow": "hidden",
+      "scrolling": "no",
+    }
+  }
+>
+  <iframe
+    className="embed-responsive-item"
+    src="some-url"
+    style={
+      Object {
+        "minHeight": "100%",
+      }
+    }
+  />
+</div>
+`;
