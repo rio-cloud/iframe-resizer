@@ -1,4 +1,4 @@
-# Iframe resizer as a wrapper
+# iframe-resizer
 
 ## Purpose
 This Iframe-Resizer wrapper is a react component which embeds an SPA in an Iframe. It responsively resizes the height of the Iframe and its displayed content. 
@@ -6,7 +6,7 @@ It can be used to render websites within an iFrame whose size changes dynamicall
 
 ### Current Features 
 This container service currently covers the following features:
-* Iframe-Resizer gets height from SPA via PostMessage
+* IframeResizer gets height from SPA via PostMessage
 * Responsive resizing 
 * Unit-Tests 
 * Integration testing
@@ -23,7 +23,7 @@ function onResize() {
     }
 }
 ```
-The Iframe resizer will listen for these messages and behave accordingly.
+The IframeResizer will listen for these messages and behave accordingly.
 If your SPA is also written in React, you would probably implement this in a ```componentDidUpdate()``` function.
 
 ## Usage
@@ -44,3 +44,7 @@ const myGreatApp = <IframeResizer url={"https://myToBeDisplayedSPA_URL/"}/>
 ```
 ## Local development and testing
 To start the demo app locally, first run ```npm run start-demo``` then run ```npm run start``` in a separate terminal. 
+
+## License
+iframe-resizer is licensed under the [Apache 2.0 license](https://github.com/rio-cloud/iframe-resizer/blob/master/LICENSE).
+
