@@ -1,9 +1,9 @@
 {
   "name": "@rio-cloud/iframe-resizer",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "RIO Iframe resizer",
   "license": "Apache-2.0",
-  "main": "dist/index.js",
+  "main": "src/index.js",
   "scripts": {
     "build": "./node_modules/.bin/babel src/index.js --out-dir dist && cp src/index.d.ts dist/index.d.ts",
     "start-no-watch": "NODE_ENV=development $(npm bin)/webpack-dev-server --env.verbose --env.demo --progress --host 127.0.0.1 --port 8080",
