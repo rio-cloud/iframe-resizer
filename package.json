@@ -1,7 +1,9 @@
 {
   "name": "@rio-cloud/iframe-resizer",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "RIO Iframe resizer",
+  "homepage": "https://github.com/rio-cloud/iframe-resizer",
+  "repository": "https://github.com/rio-cloud/iframe-resizer",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "scripts": {
