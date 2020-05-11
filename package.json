@@ -1,6 +1,6 @@
 {
   "name": "@rio-cloud/iframe-resizer",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "RIO Iframe resizer",
   "homepage": "https://github.com/rio-cloud/iframe-resizer",
   "repository": "https://github.com/rio-cloud/iframe-resizer",
@@ -25,7 +25,7 @@
   "files": [
     "dist"
   ],
-  "author": "CTC Team <rio_team_ctc@my-rio.de>",
+  "author": "Marketplace Team <rio_team_marketplace@my-rio.de>",
   "devDependencies": {
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.4.0",
