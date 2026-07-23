@@ -23,12 +23,41 @@ import {
     type ScrollToOffsetMessage,
 } from '../shared/protocol.js';
 
+/**
+ * Receives application-specific data sent by the connected parent.
+ *
+ * The payload is typed as `unknown`; consumers should validate or narrow it before use.
+ */
 export type ChildMessageListener = (data: unknown) => void;
 
 export type IframeResizerChild = {
+    /**
+     * Permanently stops the child runtime and removes its listeners and observers.
+     *
+     * The singleton runtime cannot reconnect after this call. Reload the embedded document to
+     * create a new runtime.
+     */
     disconnect: () => void;
+
+    /**
+     * Schedules a fresh document measurement for the active connection.
+     *
+     * Calls made before a parent is connected or after `disconnect()` have no effect.
+     */
     resize: () => void;
+
+    /**
+     * Sends application-specific data to the connected parent.
+     *
+     * @returns `true` when the message was sent, or `false` while no parent is connected.
+     */
     sendMessage: (data: unknown) => boolean;
+
+    /**
+     * Registers a listener for application-specific data sent by the parent.
+     *
+     * @returns A function that removes this listener.
+     */
     subscribe: (listener: ChildMessageListener) => () => void;
 };
 

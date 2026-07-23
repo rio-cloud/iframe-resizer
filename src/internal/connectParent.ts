@@ -19,19 +19,42 @@ import {
 } from '../shared/protocol.js';
 import { createLegacyV4Command, createLegacyV4InitMessage, parseLegacyV4Message } from './legacyV4Protocol.js';
 
+/**
+ * Origins from which the iframe may establish a connection.
+ *
+ * `'src'` restricts the connection to the origin derived from the iframe URL. `'any'` accepts
+ * every origin and should only be used for trusted content. An array allows explicitly listed
+ * origins, for example after known redirects.
+ */
 export type AllowedOrigins = 'any' | 'src' | readonly string[];
+
+/** Protocol used by an established parent-child connection. */
 export type ConnectionProtocol = 'legacy-v4' | 'modern';
+
+/** Protocols accepted by the parent while discovering the child runtime. */
 export type ProtocolMode = 'auto' | ConnectionProtocol;
 
+/** Describes a size that was applied to an iframe. */
 export type IframeResizeEvent = FrameSize & {
+    /** Iframe whose dimensions were updated. */
     iframe: HTMLIFrameElement;
+
+    /** Protocol over which the resize was reported. */
     protocol: ConnectionProtocol;
+
+    /** Browser or application event that caused the child to measure itself. */
     reason: ResizeReason | 'legacy-v4';
 };
 
+/** Describes a successfully established and origin-verified connection. */
 export type IframeReadyEvent = {
+    /** Iframe whose child runtime connected. */
     iframe: HTMLIFrameElement;
+
+    /** Origin verified during the connection handshake. */
     origin: string;
+
+    /** Protocol selected for this connection. */
     protocol: ConnectionProtocol;
 };
 

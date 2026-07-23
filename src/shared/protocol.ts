@@ -1,8 +1,17 @@
 export const IFRAME_RESIZER_PROTOCOL = '@rio-cloud/iframe-resizer';
 export const IFRAME_RESIZER_PROTOCOL_VERSION = 1;
 
+/** Iframe dimensions controlled by measurements from the child runtime. */
 export type ResizeDirection = 'vertical' | 'horizontal' | 'both';
+
+/**
+ * Source of automatic resize events for iframe-resizer 4.x compatibility.
+ *
+ * The modern child runtime uses observers for either value.
+ */
 export type ResizeFrom = 'child' | 'parent';
+
+/** Strategy used by the child runtime to calculate the document height. */
 export type HeightCalculationMethod =
     | 'auto'
     | 'bodyOffset'
@@ -31,11 +40,16 @@ const HEIGHT_CALCULATION_METHODS: readonly HeightCalculationMethod[] = [
 export const isHeightCalculationMethod = (value: unknown): value is HeightCalculationMethod =>
     typeof value === 'string' && HEIGHT_CALCULATION_METHODS.includes(value as HeightCalculationMethod);
 
+/** Document dimensions measured by the child runtime, in CSS pixels. */
 export type FrameSize = {
+    /** Measured document height in CSS pixels. */
     height: number;
+
+    /** Measured document width in CSS pixels. */
     width: number;
 };
 
+/** Event that caused the child runtime to measure and report its document size. */
 export type ResizeReason = 'connect' | 'document-load' | 'font-load' | 'manual' | 'mutation' | 'resize-observer';
 
 type ProtocolMessage = {

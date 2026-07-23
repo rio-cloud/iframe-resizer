@@ -112,6 +112,10 @@ ref.current?.sendMessage({ theme: 'dark' });
 ref.current?.disconnect();
 ```
 
+`resize()` and `sendMessage()` return `false` until the child has established a connection. Use
+`onReady` when an action must be sent as soon as the channel is available. `disconnect()` closes the
+connection and removes its listeners permanently; remount the component to connect again.
+
 ### iframe-resizer 4.x compatibility
 
 The default `protocol='auto'` supports incremental migrations in both directions:
@@ -148,6 +152,12 @@ iframeResizerChild?.sendMessage({ status: 'ready' });
 
 Importing the child entry starts its observers automatically when the module runs inside an iframe.
 The default export is `undefined` when it runs in a top-level window.
+
+`subscribe()` returns a function that removes the registered listener. `sendMessage()` returns
+`false` until a parent connection is ready. Calling `resize()` schedules a new measurement for the
+active connection; calls made before connecting have no effect. The connection handshake performs
+its own initial measurement. `disconnect()` permanently stops the singleton runtime and removes all
+observers and listeners. Reload the embedded document to start a new runtime after disconnecting.
 
 `ResizeObserver` detects layout size changes. A `MutationObserver`, document load events and font
 loading cover changes that may not resize an already observed element directly. Notifications are

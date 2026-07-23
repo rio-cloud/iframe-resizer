@@ -25,9 +25,28 @@ export type {
 } from '../shared/protocol.js';
 
 export type IframeResizerRef = {
+    /**
+     * Permanently closes the current connection and removes its listeners.
+     *
+     * The component does not reconnect automatically. Remount it to establish a new connection.
+     */
     disconnect: () => void;
+
+    /** The rendered iframe element, or `null` before it has mounted. */
     element: HTMLIFrameElement | null;
+
+    /**
+     * Requests a fresh measurement from the connected child.
+     *
+     * @returns `true` when the request was sent, or `false` while no child is connected.
+     */
     resize: () => boolean;
+
+    /**
+     * Sends application-specific data to the connected child.
+     *
+     * @returns `true` when the message was sent, or `false` while no child is connected.
+     */
     sendMessage: (data: unknown) => boolean;
 };
 
@@ -243,7 +262,7 @@ const IframeResizer = forwardRef<IframeResizerRef, IframeResizerProps>((props, r
         resizeFrom,
     };
 
-    // A changed origin policy or resize direction requires a fresh protocol handshake.
+    // Connection-level option changes require a fresh protocol handshake.
     // biome-ignore lint/correctness/useExhaustiveDependencies: the values are intentionally connection keys.
     useEffect(() => {
         const iframe = iframeRef.current;
