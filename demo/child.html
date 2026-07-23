@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Resizable child application</title>
+        <link rel="stylesheet" href="./child.css" />
+    </head>
+    <body>
+        <main>
+            <p class="eyebrow">Child application</p>
+            <h1>Dynamic service content</h1>
+            <p class="intro">
+                These controls change the child document. Watch the iframe height in the parent respond without
+                introducing a nested scrollbar.
+            </p>
+
+            <div class="actions">
+                <button id="add-content" type="button">Add content</button>
+                <button id="remove-content" class="secondary" type="button">Remove content</button>
+            </div>
+
+            <section id="content-list" class="content-list" aria-live="polite"></section>
+        </main>
+        <script type="module" src="./child.ts"></script>
+    </body>
+</html>

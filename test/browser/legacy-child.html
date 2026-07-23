@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Legacy iframe-resizer child</title>
+    </head>
+    <body>
+        <main id="content" style="height: 180px">
+            <button id="grow" type="button">Grow legacy content</button>
+            <button id="message" type="button">Send legacy message</button>
+            <output id="parent-message"></output>
+        </main>
+        <script>
+            window.iFrameResizer = {
+                onMessage(message) {
+                    document.querySelector('#parent-message').textContent = JSON.stringify(message);
+                },
+            };
+        </script>
+        <script src="/node_modules/iframe-resizer/js/iframeResizer.contentWindow.js"></script>
+        <script type="module" src="./legacy-child.ts"></script>
+    </body>
+</html>

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Legacy iframe-resizer parent</title>
+    </head>
+    <body>
+        <iframe
+            id="legacy-parent-frame"
+            src="/test/browser/child.html"
+            title="New child in legacy parent"
+        ></iframe>
+        <script src="/node_modules/iframe-resizer/js/iframeResizer.js"></script>
+        <script type="module" src="./legacy-parent.ts"></script>
+    </body>
+</html>

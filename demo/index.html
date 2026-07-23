@@ -1,25 +1,17 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Here's an iFrame</title>
-</head>
-<body style="background-color: #0074D9">
-<div style="margin: auto; width: 50%" align="center">
-    <button id="change-size-button" style="font-size: 30pt">Change my size!</button>
-</div>
-<script>
-    const height1 = 500;
-    const height2 = 700;
-
-    let currentHeight = 500;
-    document.getElementById('change-size-button').addEventListener('click', function() {
-        if (document.referrer) {
-            currentHeight = currentHeight === height1 ? height2 : height1;
-            window.parent.postMessage({ height: currentHeight }, document.referrer);
-        }
-    })
-
-</script>
-</body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta
+            name="description"
+            content="Interactive demo for automatic child-to-parent iframe height resizing."
+        />
+        <title>RIO iframe resizer demo</title>
+        <link rel="stylesheet" href="./parent.css" />
+    </head>
+    <body>
+        <div id="root"></div>
+        <script type="module" src="./parent.tsx"></script>
+    </body>
 </html>

@@ -1,53 +1,215 @@
-[![Build Status](https://travis-ci.com/rio-cloud/iframe-resizer.svg?branch=master)](https://travis-ci.com/rio-cloud/iframe-resizer)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+# @rio-cloud/iframe-resizer
 
-# iframe-resizer
+Automatic iframe resizing for React hosts and modern browser clients.
 
-## Purpose
-This Iframe-Resizer wrapper is a react component which embeds an SPA in an Iframe. It responsively resizes the height of the Iframe and its displayed content. 
-It can be used to render websites within an iFrame whose size changes dynamically.
+The package contains both sides of the connection:
 
-### Current Features 
-This container service currently covers the following features:
-* IframeResizer gets height from SPA via PostMessage
-* Responsive resizing 
-* Unit-Tests 
-* Integration testing
+- a React component for the parent application;
+- a framework-independent child runtime for the embedded application.
 
-## Prerequisites
-Your SPA needs to be able to send its height to the parent window via postMessage whenever it's size changes, and you will need to implement this 
- functionality yourself. ForExample:
-   
-```javascript
-function onResize() {
-    if (document.referrer) {
-        const height = document.body.clientHeight;
-        window.parent.postMessage({ height: height }, document.referrer);
-    }
-}
+The child runtime is shipped with the npm package. It does not depend on a RIO CDN.
+
+## Requirements
+
+- React 18 or React 19 in the parent application;
+- modern browsers with native support for ES modules, `ResizeObserver`, `MutationObserver`,
+  `MessageChannel`, `AbortController` and `crypto.randomUUID()`;
+- a bundler or another way to serve ES modules.
+
+The package is ESM-only. It contains no CommonJS build, polyfills or transpilation for legacy browsers.
+React is a peer dependency and is not included in the bundle.
+
+## Installation
+
+Install the package in the parent application:
+
+```sh
+npm install @rio-cloud/iframe-resizer
 ```
-The IframeResizer will listen for these messages and behave accordingly.
-If your SPA is also written in React, you would probably implement this in a ```componentDidUpdate()``` function.
 
-## Usage
-1.	In your parent, where you want to display the Iframe : Update your package.json and add the Iframe-Resizer to the dependencies: 
-   
-```     
-"@rio-cloud/iframe-resizer": "0.0.1"
-```     
+Install the same package in the embedded application so it can bundle the child runtime:
 
-2.	Execute npm install
+```sh
+npm install @rio-cloud/iframe-resizer
+```
 
-3.	Add the <IframeResizer /> in your parentApplication.js with the URL of the SPA you want to display in it and add it to the rendering.
-   
-```javascript  
+## Parent application
+
+```tsx
 import IframeResizer from '@rio-cloud/iframe-resizer';
 
-const myGreatApp = <IframeResizer url={"https://myToBeDisplayedSPA_URL/"}/>
+export const EmbeddedApplication = () => (
+    <IframeResizer
+        src='https://embedded.example.com/'
+        title='Embedded application'
+        onReady={({ origin, protocol }) => {
+            console.info(`Connected to ${origin} using ${protocol}`);
+        }}
+    />
+);
 ```
-## Local development and testing
-To start the demo app locally, first run ```npm run start-demo``` then run ```npm run start``` in a separate terminal. 
+
+The origin derived from `src` is the only origin allowed by default. When the URL may redirect to a
+known origin, list every accepted origin explicitly:
+
+```tsx
+<IframeResizer
+    allowedOrigins={['https://embedded.example.com', 'https://embedded-eu.example.com']}
+    src='https://embedded.example.com/'
+    title='Embedded application'
+/>;
+```
+
+Use `allowedOrigins='any'` only when every possible child origin is trusted.
+
+## Interactive demo
+
+Run the local demo to see the primary child-to-parent resizing use case:
+
+```sh
+npm start
+```
+
+The child page lets you add and remove dynamic content. Its runtime reports every height change to
+the React parent, which updates the iframe so that the embedded page does not need its own vertical
+scrollbar.
+
+### Props
+
+`IframeResizer` accepts native iframe props such as `src`, `srcDoc`, `allow`, `sandbox`,
+`className`, `style` and `loading` in addition to:
+
+| Prop | Type | Default | Purpose |
+| --- | --- | --- | --- |
+| `title` | `string` | required | Accessible name of the iframe |
+| `allowedOrigins` | `'src' \| 'any' \| readonly string[]` | `'src'` | Origins allowed to connect |
+| `checkOrigin` | `boolean \| readonly string[]` | none | Deprecated v4 alias for `allowedOrigins` |
+| `direction` | `'vertical' \| 'horizontal' \| 'both'` | `'vertical'` | Dimensions controlled by the child |
+| `resizeFrom` | `'parent' \| 'child'` | `'parent'` | v4 resize-event source compatibility |
+| `bodyMargin` | `string \| number \| null` | none | Body margin applied inside the child |
+| `heightCalculationMethod` | `HeightCalculationMethod` | `'auto'` | Child height measurement strategy |
+| `protocol` | `'auto' \| 'modern' \| 'legacy-v4'` | `'auto'` | Accepted child protocol |
+| `minHeight`, `minWidth` | `number` | `0` | Lower size limits in pixels |
+| `maxHeight`, `maxWidth` | `number` | none | Upper size limits in pixels |
+| `onReady` | `(event) => void` | none | Called after the secure connection is ready |
+| `onResized` | `(event) => void` | none | Called after a child size is applied |
+| `onMessage` | `(data: unknown) => void` | none | Receives application data from the child |
+
+The component ref exposes the iframe element and imperative communication:
+
+```tsx
+import { useRef } from 'react';
+import IframeResizer, { type IframeResizerRef } from '@rio-cloud/iframe-resizer';
+
+const ref = useRef<IframeResizerRef>(null);
+
+<IframeResizer ref={ref} src='/embedded/' title='Embedded application' />;
+
+ref.current?.resize();
+ref.current?.sendMessage({ theme: 'dark' });
+ref.current?.disconnect();
+```
+
+### iframe-resizer 4.x compatibility
+
+The default `protocol='auto'` supports incremental migrations in both directions:
+
+| Parent | Child | Supported |
+| --- | --- | --- |
+| `@rio-cloud/iframe-resizer` | `@rio-cloud/iframe-resizer/child` | yes, modern protocol |
+| `@rio-cloud/iframe-resizer` | `iframeResizer.contentWindow.js` 4.x | yes, legacy bridge |
+| `iframe-resizer` 4.x | `@rio-cloud/iframe-resizer/child` | yes, legacy bridge |
+
+In auto mode the modern `MessageChannel` protocol is preferred when both protocols are available.
+Set `protocol='modern'` after every embedded application has migrated to disable legacy string
+messages. Use `protocol='legacy-v4'` only for diagnosis or when a known child must be forced onto the
+bridge.
+
+The bridge covers initialization, automatic height and width updates, manual resize requests and
+application messages in both directions. `checkOrigin`, `resizeFrom`, `bodyMargin` and the v4 height
+calculation method names are also mapped. Advanced v4 scrolling, anchor, page-info, mouse and close
+APIs are not emulated.
+
+## Embedded application
+
+Import the child entry once at application startup:
+
+```ts
+import iframeResizerChild from '@rio-cloud/iframe-resizer/child';
+
+iframeResizerChild?.subscribe(message => {
+    console.info('Message from the parent', message);
+});
+
+iframeResizerChild?.sendMessage({ status: 'ready' });
+```
+
+Importing the child entry starts its observers automatically when the module runs inside an iframe.
+The default export is `undefined` when it runs in a top-level window.
+
+`ResizeObserver` detects layout size changes. A `MutationObserver`, document load events and font
+loading cover changes that may not resize an already observed element directly. Notifications are
+coalesced with `requestAnimationFrame`.
+
+### Using `srcDoc`
+
+`srcDoc` is supported as a native iframe prop. The HTML must load the child runtime inside the
+embedded document:
+
+```tsx
+<IframeResizer
+    srcDoc={`
+        <!doctype html>
+        <main>Embedded content</main>
+        <script type="module" src="/assets/rio-iframe-resizer-child.js"></script>
+    `}
+    title='Embedded content'
+/>;
+```
+
+Relative asset URLs in `srcDoc` resolve against the parent document. When `sandbox` is used,
+`allow-scripts` is required for the child runtime. A sandbox without `allow-same-origin` uses the
+opaque `null` origin, which is supported by additionally validating the exact iframe window.
+
+### Serving the child script without bundling
+
+The published `dist/child/index.js` file is a self-contained ES module. A service can copy that file
+from `node_modules` into its own static assets and serve it from its own origin:
+
+```html
+<script type="module" src="/assets/rio-iframe-resizer-child.js"></script>
+```
+
+The package does not load code from a CDN at runtime.
+
+## Security model
+
+The modern handshake uses `window.postMessage` and validates both the sending window and its origin.
+After the handshake, the parent and child communicate over a dedicated `MessageChannel`; unrelated
+global `message` events cannot resize the iframe.
+
+The v4 bridge must retain the legacy global string-message format. It still validates that every
+message came from the exact iframe or parent window and from an allowed origin. Disable it with
+`protocol='modern'` when migration is complete to reduce the accepted protocol surface.
+
+For sandboxed iframes without `allow-same-origin`, the browser reports the opaque origin as `null`.
+The parent still verifies that the message came from the iframe's exact `contentWindow`.
+
+## Development
+
+Use Node.js 24 or newer:
+
+```sh
+npm install
+npm run check
+```
+
+`npm run check` runs formatting and lint checks, strict TypeScript, Vitest unit tests, a Playwright
+iframe integration test, the production build and a package-content dry run.
+
+See [MIGRATION.md](./MIGRATION.md) for the breaking changes from the old package and from
+`iframe-resizer-react`.
 
 ## License
-iframe-resizer is licensed under the [Apache 2.0 license](https://github.com/rio-cloud/iframe-resizer/blob/master/LICENSE).
 
+Licensed under the [Apache License 2.0](./LICENSE).

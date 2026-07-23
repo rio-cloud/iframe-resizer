@@ -1,75 +1,81 @@
 {
-  "name": "@rio-cloud/iframe-resizer",
-  "version": "0.0.7",
-  "description": "RIO Iframe resizer",
-  "homepage": "https://github.com/rio-cloud/iframe-resizer",
-  "repository": "https://github.com/rio-cloud/iframe-resizer",
-  "license": "Apache-2.0",
-  "main": "dist/index.js",
-  "scripts": {
-    "build": "./node_modules/.bin/babel src/index.js --out-dir dist && cp src/index.d.ts dist/index.d.ts",
-    "start-no-watch": "NODE_ENV=development $(npm bin)/webpack-dev-server --env.verbose --env.demo --progress --host 127.0.0.1 --port 8080",
-    "lint": "eslint 'src/**/*.js' 'test/**/*.js'",
-    "start": "NODE_ENV=development nodemon --watch webpack.config.js $(npm bin)/webpack-dev-server --env.verbose --env.demo --progress --host 127.0.0.1 --port 8080 --watch",
-    "start-demo": "http-server ./demo -p 8081",
-    "test": "NODE_ENV=test jest /test --coverage",
-    "build-and-publish": "npm run build && npm publish --access public"
-  },
-  "types": "dist/index.d.ts",
-  "browserslist": [
-    "last 2 versions",
-    "Firefox 52",
-    "safari >= 7",
-    "IE >= 11"
-  ],
-  "files": [
-    "dist"
-  ],
-  "author": "Marketplace Team <rio_team_marketplace@my-rio.de>",
-  "devDependencies": {
-    "@babel/cli": "^7.2.3",
-    "@babel/core": "^7.4.0",
-    "@babel/plugin-proposal-object-rest-spread": "^7.4.0",
-    "@babel/plugin-syntax-dynamic-import": "^7.2.0",
-    "@babel/plugin-transform-react-jsx": "^7.3.0",
-    "@babel/plugin-transform-runtime": "^7.4.0",
-    "@babel/polyfill": "^7.4.0",
-    "@babel/preset-env": "^7.4.2",
-    "@babel/preset-react": "^7.0.0",
-    "@babel/runtime": "^7.4.2",
-    "@types/react": "16.8.23",
-    "babel-eslint": "^10.0.1",
-    "babel-loader": "^8.0.5",
-    "babel-plugin-captains-log": "^1.1.0",
-    "babel-plugin-lodash": "^3.3.4",
-    "babel-plugin-module-resolver": "^3.2.0",
-    "chai": "^4.2.0",
-    "dotenv": "^6.2.0",
-    "enzyme": "3.8.0",
-    "enzyme-adapter-react-15": "^1.0.6",
-    "eslint": "^5.15.3",
-    "eslint-cli": "^1.1.1",
-    "eslint-plugin-compat": "^2.7.0",
-    "eslint-plugin-getsentry": "^2.0.0",
-    "eslint-plugin-react": "^7.12.4",
-    "html-webpack-plugin": "^3.2.0",
-    "http-server": "^0.11.1",
-    "jest": "^24.8.0",
-    "mocha": "^5.2.0",
-    "nodemon": "^1.18.10",
-    "puppeteer": "^1.13.0",
-    "react": "^15.6.2",
-    "react-dom": "^15.6.2",
-    "react-test-renderer": "^15.6.2",
-    "webpack": "^4.29.6",
-    "webpack-bundle-analyzer": "^3.3.2",
-    "webpack-cli": "^3.3.0",
-    "webpack-dev-server": "^3.2.1",
-    "webpack-merge": "^4.2.1"
-  },
-  "peerDependencies": {
-    "prop-types": "^15.7.2",
-    "react": "^15.6.2 || ^16.8.6",
-    "react-dom": "^15.6.2 || ^16.8.6"
-  }
+    "name": "@rio-cloud/iframe-resizer",
+    "version": "1.0.0",
+    "description": "Secure automatic iframe resizing for React hosts and modern browser clients",
+    "homepage": "https://github.com/rio-cloud/iframe-resizer",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/rio-cloud/iframe-resizer.git"
+    },
+    "license": "Apache-2.0",
+    "type": "module",
+    "module": "./dist/react/index.js",
+    "types": "./dist/react/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/react/index.d.ts",
+            "import": "./dist/react/index.js"
+        },
+        "./react": {
+            "types": "./dist/react/index.d.ts",
+            "import": "./dist/react/index.js"
+        },
+        "./child": {
+            "types": "./dist/child/index.d.ts",
+            "import": "./dist/child/index.js"
+        },
+        "./package.json": "./package.json"
+    },
+    "files": [
+        "dist",
+        "CHANGELOG.md",
+        "LICENSE",
+        "MIGRATION.md",
+        "README.md"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
+    "sideEffects": [
+        "./dist/child/index.js"
+    ],
+    "scripts": {
+        "build": "npm run clean && npm run build:types && npm run build:javascript",
+        "build:javascript": "esbuild src/react/index.tsx src/child/index.ts --bundle --format=esm --platform=browser --target=es2022 --outdir=dist --outbase=src --external:react --external:react/jsx-runtime",
+        "build:types": "tsc --project tsconfig.build.json",
+        "check": "npm run lint && npm run typecheck && npm run test && npm run test:integration && npm run build && npm pack --dry-run",
+        "clean": "node tools/clean.mjs",
+        "lint": "biome check .",
+        "lint:fix": "biome check --write .",
+        "prepack": "npm run build",
+        "start": "vite --host 127.0.0.1 --open /demo/",
+        "test:server": "vite --host 127.0.0.1",
+        "test": "vitest run",
+        "test:integration": "playwright test",
+        "typecheck": "tsc --noEmit"
+    },
+    "engines": {
+        "node": ">=24.0.0",
+        "npm": ">=10.0.0"
+    },
+    "peerDependencies": {
+        "react": "^18.0.0 || ^19.0.0"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "2.5.5",
+        "@playwright/test": "1.61.1",
+        "@testing-library/dom": "10.4.1",
+        "@testing-library/react": "16.3.2",
+        "@types/node": "24.11.0",
+        "@types/react": "18.3.28",
+        "@types/react-dom": "18.3.7",
+        "esbuild": "0.28.1",
+        "happy-dom": "20.11.1",
+        "iframe-resizer": "4.3.11",
+        "react": "18.3.1",
+        "react-dom": "18.3.1",
+        "typescript": "7.0.2",
+        "vite": "8.1.5",
+        "vitest": "4.1.10"
+    }
 }
