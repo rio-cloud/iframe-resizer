@@ -17,12 +17,13 @@ export type LegacyV4ParentMessage =
           bodyMargin: string | null;
           frameId: string;
           heightCalculationMethod: HeightCalculationMethod;
+          inPageLinks: boolean;
           resizeFrom: ResizeFrom;
           type: 'init';
       }
     | {
           payload: string | undefined;
-          type: 'message' | 'reset' | 'resize';
+          type: 'inPageLink' | 'message' | 'moveToAnchor' | 'reset' | 'resize';
       };
 
 const parseDimension = (value: string | undefined): number | undefined => {
@@ -39,6 +40,7 @@ type LegacyV4InitOptions = {
     direction: ResizeDirection;
     frameId: string;
     heightCalculationMethod: HeightCalculationMethod;
+    inPageLinks: boolean;
     resizeFrom: ResizeFrom;
 };
 
@@ -55,6 +57,7 @@ export const createLegacyV4InitMessage = ({
     direction,
     frameId,
     heightCalculationMethod,
+    inPageLinks,
     resizeFrom,
 }: LegacyV4InitOptions): string => {
     const calculateWidth = direction !== 'vertical';
@@ -73,7 +76,7 @@ export const createLegacyV4InitMessage = ({
         'null',
         'null',
         '0',
-        'false',
+        String(inPageLinks),
         resizeFrom,
         'scroll',
         'false',
@@ -99,6 +102,14 @@ export const createLegacyV4ChildMessage = (
     return `${LEGACY_V4_PREFIX}${frameId}:${height}:${width}:${trigger}${payload}`;
 };
 
+export const createLegacyV4ChildCommand = (
+    frameId: string,
+    height: number,
+    width: number,
+    trigger: 'inPageLink' | 'scrollToOffset',
+    payload = ''
+): string => `${LEGACY_V4_PREFIX}${frameId}:${height}:${width}:${trigger}${payload ? `:${payload}` : ''}`;
+
 export const parseLegacyV4ParentMessage = (value: unknown): LegacyV4ParentMessage | undefined => {
     if (typeof value !== 'string' || !value.startsWith(LEGACY_V4_PREFIX)) {
         return undefined;
@@ -113,12 +124,19 @@ export const parseLegacyV4ParentMessage = (value: unknown): LegacyV4ParentMessag
             bodyMargin: data[6] === undefined || data[6] === 'null' ? null : data[6],
             frameId: typeOrFrameId ?? '',
             heightCalculationMethod: isHeightCalculationMethod(data[7]) ? data[7] : 'bodyOffset',
+            inPageLinks: data[11] === 'true',
             resizeFrom: data[12] === 'child' ? 'child' : 'parent',
             type: 'init',
         };
     }
 
-    if (typeOrFrameId === 'message' || typeOrFrameId === 'reset' || typeOrFrameId === 'resize') {
+    if (
+        typeOrFrameId === 'inPageLink' ||
+        typeOrFrameId === 'message' ||
+        typeOrFrameId === 'moveToAnchor' ||
+        typeOrFrameId === 'reset' ||
+        typeOrFrameId === 'resize'
+    ) {
         return {
             payload: data.length > 0 ? data.join(':') : undefined,
             type: typeOrFrameId,

@@ -6,6 +6,16 @@ declare global {
     }
 }
 
+if (new URLSearchParams(window.location.search).has('inPageLinks')) {
+    const content = document.querySelector<HTMLElement>('#content');
+    const inPageLinks = document.querySelector<HTMLElement>('#in-page-links');
+
+    if (content && inPageLinks) {
+        content.style.height = 'auto';
+        inPageLinks.hidden = false;
+    }
+}
+
 document.querySelector('#grow')?.addEventListener('click', () => {
     const content = document.querySelector<HTMLElement>('#content');
     if (content) {

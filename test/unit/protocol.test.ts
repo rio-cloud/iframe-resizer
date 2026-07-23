@@ -5,10 +5,14 @@ import {
     createProtocolMessage,
     IFRAME_RESIZER_PROTOCOL,
     IFRAME_RESIZER_PROTOCOL_VERSION,
+    type InPageLinkMessage,
     isConnectMessage,
+    isInPageLinkMessage,
     isProtocolMessage,
     isResizeMessage,
+    isScrollToOffsetMessage,
     type ResizeMessage,
+    type ScrollToOffsetMessage,
 } from '../../src/shared/protocol.js';
 
 describe('protocol', () => {
@@ -27,6 +31,31 @@ describe('protocol', () => {
             version: IFRAME_RESIZER_PROTOCOL_VERSION,
         });
         expect(isConnectMessage(message)).toBe(true);
+    });
+
+    it('validates in-page link and scroll offset messages', () => {
+        expect(
+            isInPageLinkMessage(
+                createProtocolMessage<InPageLinkMessage>({
+                    hash: '#details',
+                    type: 'in-page-link',
+                })
+            )
+        ).toBe(true);
+        expect(
+            isScrollToOffsetMessage(
+                createProtocolMessage<ScrollToOffsetMessage>({
+                    type: 'scroll-to-offset',
+                    x: 20,
+                    y: 320,
+                })
+            )
+        ).toBe(true);
+        expect(
+            isScrollToOffsetMessage(
+                createProtocolMessage<ScrollToOffsetMessage>({ type: 'scroll-to-offset', x: 20, y: Number.NaN })
+            )
+        ).toBe(false);
     });
 
     it('rejects messages from other protocols and malformed resize messages', () => {

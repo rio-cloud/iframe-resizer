@@ -8,8 +8,10 @@ import {
     type HeightCalculationMethod,
     isConnectedMessage,
     isDataMessage,
+    isInPageLinkMessage,
     isReadyMessage,
     isResizeMessage,
+    isScrollToOffsetMessage,
     type ResizeDirection,
     type ResizeFrom,
     type ResizeReason,
@@ -38,6 +40,7 @@ export type ParentConnectionOptions = {
     bodyMargin: string | number | null | undefined;
     direction: ResizeDirection;
     heightCalculationMethod: HeightCalculationMethod;
+    inPageLinks: boolean;
     maxHeight: number | undefined;
     maxWidth: number | undefined;
     minHeight: number;
@@ -102,6 +105,31 @@ const getTargetOrigin = (iframe: HTMLIFrameElement, allowedOrigins: AllowedOrigi
 const clamp = (value: number, minimum: number, maximum?: number): number =>
     Math.min(Math.max(Math.ceil(value), minimum), maximum ?? Number.POSITIVE_INFINITY);
 
+type LegacyParentIFrame = {
+    moveToAnchor?: (hash: string) => void;
+    scrollToOffset?: (x: number, y: number) => void;
+};
+
+const getLegacyParentIFrame = (): LegacyParentIFrame | undefined =>
+    (window as Window & { parentIFrame?: LegacyParentIFrame }).parentIFrame;
+
+const getTarget = (location: string): HTMLElement | undefined => {
+    const hash = location.split('#')[1] ?? location.replace(/^#/, '');
+
+    if (!hash) {
+        return undefined;
+    }
+
+    let decodedHash: string;
+    try {
+        decodedHash = decodeURIComponent(hash);
+    } catch {
+        decodedHash = hash;
+    }
+
+    return document.getElementById(decodedHash) ?? document.getElementsByName(decodedHash).item(0) ?? undefined;
+};
+
 export const connectParent = ({ getOptions, iframe }: ParentConnectionArguments): ParentConnection => {
     const lifecycle = new AbortController();
     const frameId = iframe.id || crypto.randomUUID();
@@ -148,6 +176,35 @@ export const connectParent = ({ getOptions, iframe }: ParentConnectionArguments)
         options.onResized?.({ height, iframe, protocol, reason, width });
     };
 
+    const scrollToOffset = (x: number, y: number) => {
+        const iframeBounds = iframe.getBoundingClientRect();
+        const targetX = window.scrollX + iframeBounds.left + x;
+        const targetY = window.scrollY + iframeBounds.top + y;
+
+        if (window.top === window.self) {
+            window.scrollTo({ left: targetX, top: targetY });
+        } else {
+            getLegacyParentIFrame()?.scrollToOffset?.(targetX, targetY);
+        }
+    };
+
+    const followInPageLink = (hash: string) => {
+        const target = getTarget(hash);
+
+        if (target) {
+            const bounds = target.getBoundingClientRect();
+            window.scrollTo({
+                left: window.scrollX + bounds.left,
+                top: window.scrollY + bounds.top,
+            });
+            return;
+        }
+
+        if (window.top !== window.self) {
+            getLegacyParentIFrame()?.moveToAnchor?.(hash.replace(/^#/, ''));
+        }
+    };
+
     const handlePortMessage = (event: MessageEvent<unknown>) => {
         if (isConnectedMessage(event.data) && event.data.frameId === frameId) {
             getOptions().onReady?.({ iframe, origin: activeOrigin ?? 'unknown', protocol: 'modern' });
@@ -161,6 +218,16 @@ export const connectParent = ({ getOptions, iframe }: ParentConnectionArguments)
 
         if (isDataMessage(event.data)) {
             getOptions().onMessage?.(event.data.data);
+            return;
+        }
+
+        if (isScrollToOffsetMessage(event.data)) {
+            scrollToOffset(event.data.x, event.data.y);
+            return;
+        }
+
+        if (isInPageLinkMessage(event.data)) {
+            followInPageLink(event.data.hash);
         }
     };
 
@@ -180,6 +247,7 @@ export const connectParent = ({ getOptions, iframe }: ParentConnectionArguments)
             direction: options.direction,
             frameId,
             heightCalculationMethod: options.heightCalculationMethod,
+            inPageLinks: options.inPageLinks,
             resizeFrom: options.resizeFrom,
             type: 'connect',
             ...(options.bodyMargin !== undefined ? { bodyMargin: options.bodyMargin } : {}),
@@ -229,18 +297,22 @@ export const connectParent = ({ getOptions, iframe }: ParentConnectionArguments)
             return;
         }
 
+        if (message.trigger === 'scrollToOffset') {
+            scrollToOffset(message.width, message.height);
+            return;
+        }
+
+        if (message.trigger === 'inPageLink') {
+            if (message.payload) {
+                followInPageLink(message.payload);
+            }
+            return;
+        }
+
         if (
-            ![
-                'autoResize',
-                'close',
-                'inPageLink',
-                'mouseenter',
-                'mouseleave',
-                'pageInfo',
-                'pageInfoStop',
-                'scrollTo',
-                'scrollToOffset',
-            ].includes(message.trigger)
+            !['autoResize', 'close', 'mouseenter', 'mouseleave', 'pageInfo', 'pageInfoStop', 'scrollTo'].includes(
+                message.trigger
+            )
         ) {
             applySize(
                 {
@@ -271,6 +343,7 @@ export const connectParent = ({ getOptions, iframe }: ParentConnectionArguments)
                     direction: options.direction,
                     frameId,
                     heightCalculationMethod: options.heightCalculationMethod,
+                    inPageLinks: options.inPageLinks,
                     resizeFrom: options.resizeFrom,
                 }),
                 { targetOrigin }

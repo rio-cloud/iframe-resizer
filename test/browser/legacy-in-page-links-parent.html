@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Legacy iframe-resizer parent with in-page links</title>
+    </head>
+    <body>
+        <div style="height: 800px"></div>
+        <iframe
+            id="legacy-parent-frame"
+            src="/test/browser/child.html?inPageLinks=true"
+            title="New child in legacy parent"
+        ></iframe>
+        <div style="height: 700px"></div>
+        <h2 id="parent-anchor">Legacy parent anchor target</h2>
+        <div style="height: 800px"></div>
+        <script src="/node_modules/iframe-resizer/js/iframeResizer.js"></script>
+        <script type="module" src="./legacy-parent.ts"></script>
+    </body>
+</html>

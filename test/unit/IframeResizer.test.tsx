@@ -74,6 +74,7 @@ describe('IframeResizer', () => {
                 bodyMargin='0 0 20px 0'
                 checkOrigin={false}
                 heightCalculationMethod='lowestElement'
+                inPageLinks
                 resizeFrom='child'
                 srcDoc='<!doctype html><title>Child</title>'
                 title='Legacy options'
@@ -84,6 +85,7 @@ describe('IframeResizer', () => {
             allowedOrigins: 'any',
             bodyMargin: '0 0 20px 0',
             heightCalculationMethod: 'lowestElement',
+            inPageLinks: true,
             resizeFrom: 'child',
         });
     });

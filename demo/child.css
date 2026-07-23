@@ -62,6 +62,32 @@ h2 {
     gap: 10px;
 }
 
+.in-page-navigation {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    margin-top: 20px;
+    color: #5b687c;
+    font-size: 14px;
+}
+
+.in-page-navigation span {
+    font-weight: 700;
+}
+
+.in-page-navigation a {
+    color: #235895;
+    font-weight: 700;
+    text-underline-offset: 3px;
+}
+
+.in-page-navigation a:focus-visible {
+    border-radius: 3px;
+    outline: 3px solid #7ba5e4;
+    outline-offset: 2px;
+}
+
 button {
     padding: 10px 15px;
     border: 1px solid #182b49;
@@ -109,16 +135,31 @@ article {
     background: #fff7ef;
 }
 
-article > span {
+.content-list article > span {
     color: #a0581c;
     font-size: 13px;
     font-weight: 800;
 }
 
-article p {
+.content-list article p {
     margin-bottom: 0;
     color: #5b687c;
     font-size: 14px;
+    line-height: 1.5;
+}
+
+.child-anchor-target {
+    margin-top: 180px;
+    padding: 18px;
+    border: 1px solid #cbd9ea;
+    border-radius: 10px;
+    background: #f1f6fc;
+}
+
+.child-anchor-target p:last-child {
+    max-width: 680px;
+    margin-bottom: 0;
+    color: #5b687c;
     line-height: 1.5;
 }
 

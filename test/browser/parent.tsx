@@ -29,9 +29,11 @@ window.browserTestState = {
 const root = document.querySelector('#root');
 const iframeRef = createRef<IframeResizerRef>();
 const protocol = new URLSearchParams(window.location.search).get('protocol');
-const legacy = protocol === 'legacy-v4';
+const legacyInPageLinks = protocol === 'legacy-in-page-links';
+const legacy = protocol === 'legacy-v4' || legacyInPageLinks;
 const legacyOptions = protocol === 'legacy-options';
 const crossOrigin = protocol === 'cross-origin';
+const inPageLinks = protocol === 'in-page-links' || legacyInPageLinks;
 const srcDoc =
     protocol === 'srcdoc'
         ? `<!doctype html>
@@ -57,37 +59,48 @@ if (!root) {
 window.sendBrowserTestMessage = data => iframeRef.current?.sendMessage(data) ?? false;
 
 createRoot(root).render(
-    <IframeResizer
-        {...(legacy || legacyOptions
-            ? {
-                  bodyMargin: '0 0 20px 0',
-                  checkOrigin: false,
-                  heightCalculationMethod: legacy ? ('lowestElement' as const) : ('max' as const),
-                  resizeFrom: 'child' as const,
-              }
-            : {})}
-        onMessage={message => {
-            window.browserTestState.message = message;
-        }}
-        onReady={({ protocol }) => {
-            window.browserTestState.protocol = protocol;
-            window.browserTestState.ready = true;
-        }}
-        onResized={(event: IframeResizeEvent) => {
-            window.browserTestState.lastHeight = event.height;
-        }}
-        ref={iframeRef}
-        src={
-            srcDoc
-                ? undefined
-                : crossOrigin
-                  ? 'http://127.0.0.1:4174/test/browser/child.html'
-                  : legacy
-                    ? '/test/browser/legacy-child.html'
-                    : '/test/browser/child.html'
-        }
-        srcDoc={srcDoc}
-        style={{ border: 0, width: 480 }}
-        title='Embedded browser test'
-    />
+    <>
+        {inPageLinks && <div data-testid='parent-spacer' style={{ height: 800 }} />}
+        <IframeResizer
+            {...(legacy || legacyOptions
+                ? {
+                      bodyMargin: '0 0 20px 0',
+                      checkOrigin: false,
+                      heightCalculationMethod: legacy ? ('lowestElement' as const) : ('max' as const),
+                      resizeFrom: 'child' as const,
+                  }
+                : {})}
+            inPageLinks={inPageLinks}
+            onMessage={message => {
+                window.browserTestState.message = message;
+            }}
+            onReady={({ protocol }) => {
+                window.browserTestState.protocol = protocol;
+                window.browserTestState.ready = true;
+            }}
+            onResized={(event: IframeResizeEvent) => {
+                window.browserTestState.lastHeight = event.height;
+            }}
+            ref={iframeRef}
+            src={
+                srcDoc
+                    ? undefined
+                    : legacy
+                      ? `/test/browser/legacy-child.html${inPageLinks ? '?inPageLinks=true' : ''}`
+                      : crossOrigin || inPageLinks
+                        ? `http://127.0.0.1:4174/test/browser/child.html${inPageLinks ? '?inPageLinks=true' : ''}`
+                        : '/test/browser/child.html'
+            }
+            srcDoc={srcDoc}
+            style={{ border: 0, width: 480 }}
+            title='Embedded browser test'
+        />
+        {inPageLinks && (
+            <>
+                <div style={{ height: 700 }} />
+                <h2 id='parent-anchor'>Parent anchor target</h2>
+                <div style={{ height: 800 }} />
+            </>
+        )}
+    </>
 );

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+    createLegacyV4ChildCommand,
     createLegacyV4ChildMessage,
     createLegacyV4Command,
     createLegacyV4InitMessage,
@@ -16,6 +17,7 @@ describe('iframe-resizer v4 protocol', () => {
                 direction: 'vertical',
                 frameId: 'frame-id',
                 heightCalculationMethod: 'auto',
+                inPageLinks: false,
                 resizeFrom: 'parent',
             })
         ).toBe(
@@ -27,10 +29,11 @@ describe('iframe-resizer v4 protocol', () => {
                 direction: 'both',
                 frameId: 'frame-id',
                 heightCalculationMethod: 'lowestElement',
+                inPageLinks: true,
                 resizeFrom: 'child',
             })
         ).toBe(
-            '[iFrameSizer]frame-id:8:true:false:32:true:true:0 0 20px 0:lowestElement:null:null:0:false:child:scroll:false'
+            '[iFrameSizer]frame-id:8:true:false:32:true:true:0 0 20px 0:lowestElement:null:null:0:true:child:scroll:false'
         );
     });
 
@@ -66,6 +69,7 @@ describe('iframe-resizer v4 protocol', () => {
             calculateWidth: true,
             frameId: 'frame-id',
             heightCalculationMethod: 'bodyOffset',
+            inPageLinks: false,
             resizeFrom: 'parent',
             type: 'init',
         });
@@ -77,6 +81,10 @@ describe('iframe-resizer v4 protocol', () => {
             payload: undefined,
             type: 'resize',
         });
+        expect(parseLegacyV4ParentMessage('[iFrameSizer]moveToAnchor:#details')).toEqual({
+            payload: '#details',
+            type: 'moveToAnchor',
+        });
     });
 
     it('creates messages understood by a v4 parent', () => {
@@ -85,6 +93,12 @@ describe('iframe-resizer v4 protocol', () => {
         );
         expect(createLegacyV4ChildMessage('frame-id', 0, 0, 'message', { status: 'ready' })).toBe(
             '[iFrameSizer]frame-id:0:0:message:{"status":"ready"}'
+        );
+        expect(createLegacyV4ChildCommand('frame-id', 320, 24, 'scrollToOffset')).toBe(
+            '[iFrameSizer]frame-id:320:24:scrollToOffset'
+        );
+        expect(createLegacyV4ChildCommand('frame-id', 0, 0, 'inPageLink', '#details')).toBe(
+            '[iFrameSizer]frame-id:0:0:inPageLink:#details'
         );
     });
 

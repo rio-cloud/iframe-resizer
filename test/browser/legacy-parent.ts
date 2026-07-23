@@ -9,6 +9,7 @@ declare global {
         iFrameResize: (
             options: {
                 checkOrigin: boolean;
+                inPageLinks?: boolean;
                 onInit: () => void;
                 onMessage: (event: { message: unknown }) => void;
             },
@@ -44,6 +45,7 @@ window.sendLegacyParentMessage = data => {
 window.iFrameResize(
     {
         checkOrigin: true,
+        inPageLinks: new URLSearchParams(window.location.search).has('inPageLinks'),
         onInit: () => {
             window.legacyParentState.ready = true;
         },

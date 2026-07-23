@@ -30,4 +30,12 @@ test('resizes the iframe to the child height without child scrolling', async ({ 
     await expect
         .poll(() => iframe.evaluate(element => element.getBoundingClientRect().height))
         .toBeLessThan(expandedHeight);
+
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await child.getByRole('link', { name: 'Child target' }).click();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(300);
+
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await child.getByRole('link', { name: 'Parent target' }).click();
+    await expect(page.locator('#parent-anchor-target')).toBeInViewport();
 });

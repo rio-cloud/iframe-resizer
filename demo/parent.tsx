@@ -53,6 +53,7 @@ const Demo = () => {
                 <div className='frame-boundary'>
                     <IframeResizer
                         heightCalculationMethod='max'
+                        inPageLinks
                         onReady={event => setProtocol(event.protocol)}
                         onResized={handleResize}
                         scrolling='no'
@@ -63,7 +64,7 @@ const Demo = () => {
                 </div>
             </section>
 
-            <section className='explanation'>
+            <section id='parent-anchor-target' className='explanation'>
                 <h2>What happens here?</h2>
                 <ol>
                     <li>
@@ -73,6 +74,9 @@ const Demo = () => {
                         A <code>ResizeObserver</code> and a <code>MutationObserver</code> detect content changes.
                     </li>
                     <li>The measured height is sent to the parent, which applies it to the iframe element.</li>
+                    <li>
+                        With <code>inPageLinks</code>, child hash links can target content in either document.
+                    </li>
                 </ol>
             </section>
         </main>

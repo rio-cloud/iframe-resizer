@@ -1,10 +1,15 @@
-import { createLegacyV4ChildMessage, parseLegacyV4ParentMessage } from '../internal/legacyV4Protocol.js';
+import {
+    createLegacyV4ChildCommand,
+    createLegacyV4ChildMessage,
+    parseLegacyV4ParentMessage,
+} from '../internal/legacyV4Protocol.js';
 import {
     type ConnectedMessage,
     createProtocolMessage,
     type DataMessage,
     type FrameSize,
     type HeightCalculationMethod,
+    type InPageLinkMessage,
     isConnectMessage,
     isDataMessage,
     isDisconnectMessage,
@@ -15,6 +20,7 @@ import {
     type ResizeDirection,
     type ResizeMessage,
     type ResizeReason,
+    type ScrollToOffsetMessage,
 } from '../shared/protocol.js';
 
 export type ChildMessageListener = (data: unknown) => void;
@@ -125,6 +131,23 @@ const HEIGHT_METHODS_REQUIRING_DOWNSIZE_PROBE = new Set<HeightCalculationMethod>
     'min',
 ]);
 
+const getTarget = (location: string): HTMLElement | undefined => {
+    const hash = location.split('#')[1] ?? location.replace(/^#/, '');
+
+    if (!hash) {
+        return undefined;
+    }
+
+    let decodedHash: string;
+    try {
+        decodedHash = decodeURIComponent(hash);
+    } catch {
+        decodedHash = hash;
+    }
+
+    return document.getElementById(decodedHash) ?? document.getElementsByName(decodedHash).item(0) ?? undefined;
+};
+
 const createIframeResizerChild = (): IframeResizerChild => {
     const lifecycle = new AbortController();
     const listeners = new Set<ChildMessageListener>();
@@ -137,6 +160,8 @@ const createIframeResizerChild = (): IframeResizerChild => {
     let direction: ResizeDirection = 'vertical';
     let frameId = '';
     let heightCalculationMethod: HeightCalculationMethod = 'auto';
+    let inPageLinksEnabled = false;
+    let inPageLinksLifecycle: AbortController | undefined;
     let lastSize: FrameSize | undefined;
     let scheduledFrame: number | undefined;
     let disconnected = false;
@@ -147,6 +172,94 @@ const createIframeResizerChild = (): IframeResizerChild => {
     const postReady = () => {
         const message = createProtocolMessage<ReadyMessage>({ type: 'ready' });
         window.parent.postMessage(message, { targetOrigin: parentOrigin ?? '*' });
+    };
+
+    const sendScrollToOffset = (x: number, y: number) => {
+        if (activeProtocol === 'legacy-v4') {
+            window.parent.postMessage(createLegacyV4ChildCommand(frameId, y, x, 'scrollToOffset'), {
+                targetOrigin: parentOrigin ?? '*',
+            });
+            return;
+        }
+
+        activePort?.postMessage(createProtocolMessage<ScrollToOffsetMessage>({ type: 'scroll-to-offset', x, y }));
+    };
+
+    const sendInPageLink = (hash: string) => {
+        const normalizedHash = hash.startsWith('#') ? hash : `#${hash}`;
+
+        if (activeProtocol === 'legacy-v4') {
+            window.parent.postMessage(createLegacyV4ChildCommand(frameId, 0, 0, 'inPageLink', normalizedHash), {
+                targetOrigin: parentOrigin ?? '*',
+            });
+            return;
+        }
+
+        activePort?.postMessage(
+            createProtocolMessage<InPageLinkMessage>({
+                hash: normalizedHash,
+                type: 'in-page-link',
+            })
+        );
+    };
+
+    const followInPageLink = (location: string) => {
+        const target = getTarget(location);
+
+        if (!target) {
+            sendInPageLink(location);
+            return;
+        }
+
+        const bounds = target.getBoundingClientRect();
+        sendScrollToOffset(window.scrollX + bounds.left, window.scrollY + bounds.top);
+    };
+
+    const stopInPageLinks = () => {
+        inPageLinksLifecycle?.abort();
+        inPageLinksLifecycle = undefined;
+    };
+
+    const startInPageLinks = () => {
+        stopInPageLinks();
+
+        if (!inPageLinksEnabled) {
+            return;
+        }
+
+        inPageLinksLifecycle = new AbortController();
+        const { signal } = inPageLinksLifecycle;
+
+        document.addEventListener(
+            'click',
+            event => {
+                const eventTarget = event.target;
+                const anchor =
+                    eventTarget instanceof Element ? eventTarget.closest<HTMLAnchorElement>('a[href^="#"]') : null;
+                const href = anchor?.getAttribute('href');
+
+                if (!href || href === '#') {
+                    return;
+                }
+
+                event.preventDefault();
+                followInPageLink(href);
+            },
+            { signal }
+        );
+        window.addEventListener(
+            'hashchange',
+            () => {
+                if (window.location.hash && window.location.hash !== '#') {
+                    followInPageLink(window.location.hash);
+                }
+            },
+            { signal }
+        );
+
+        if (window.location.hash && window.location.hash !== '#') {
+            requestAnimationFrame(() => followInPageLink(window.location.hash));
+        }
     };
 
     const reportSize = (reason: ResizeReason) => {
@@ -255,6 +368,7 @@ const createIframeResizerChild = (): IframeResizerChild => {
         activePort = undefined;
         activeProtocol = undefined;
         stopObservers();
+        stopInPageLinks();
     };
 
     const handlePortMessage = (event: MessageEvent<unknown>) => {
@@ -299,6 +413,7 @@ const createIframeResizerChild = (): IframeResizerChild => {
         heightCalculationMethod = isHeightCalculationMethod(event.data.heightCalculationMethod)
             ? event.data.heightCalculationMethod
             : 'auto';
+        inPageLinksEnabled = event.data.inPageLinks === true;
         lastSize = undefined;
         applyBodyMargin(event.data.bodyMargin);
 
@@ -307,6 +422,7 @@ const createIframeResizerChild = (): IframeResizerChild => {
         activePort.start();
 
         startObservers();
+        startInPageLinks();
 
         activePort.postMessage(createProtocolMessage<ConnectedMessage>({ frameId, type: 'connected' }));
         scheduleResize('connect');
@@ -342,9 +458,11 @@ const createIframeResizerChild = (): IframeResizerChild => {
             direction = legacyMessage.calculateWidth ? 'both' : 'vertical';
             frameId = legacyMessage.frameId;
             heightCalculationMethod = legacyMessage.heightCalculationMethod;
+            inPageLinksEnabled = legacyMessage.inPageLinks;
             lastSize = undefined;
             applyBodyMargin(legacyMessage.bodyMargin);
             startObservers();
+            startInPageLinks();
             scheduleResize('connect');
             return;
         }
@@ -363,6 +481,13 @@ const createIframeResizerChild = (): IframeResizerChild => {
                 } catch {
                     // Ignore malformed application payloads from legacy parents.
                 }
+            }
+            return;
+        }
+
+        if (legacyMessage.type === 'inPageLink' || legacyMessage.type === 'moveToAnchor') {
+            if (legacyMessage.payload) {
+                followInPageLink(legacyMessage.payload);
             }
             return;
         }

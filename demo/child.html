@@ -20,7 +20,22 @@
                 <button id="remove-content" class="secondary" type="button">Remove content</button>
             </div>
 
+            <nav class="in-page-navigation" aria-label="In-page link examples">
+                <span>Try in-page navigation:</span>
+                <a href="#child-anchor-target">Child target</a>
+                <a href="#parent-anchor-target">Parent target</a>
+            </nav>
+
             <section id="content-list" class="content-list" aria-live="polite"></section>
+
+            <section id="child-anchor-target" class="child-anchor-target">
+                <p class="eyebrow">Child anchor target</p>
+                <h2>This section lives inside the iframe</h2>
+                <p>
+                    The child reports this offset so the outer page can bring the section into view without scrolling
+                    the iframe itself.
+                </p>
+            </section>
         </main>
         <script type="module" src="./child.ts"></script>
     </body>

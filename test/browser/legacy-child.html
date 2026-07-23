@@ -10,6 +10,15 @@
             <button id="grow" type="button">Grow legacy content</button>
             <button id="message" type="button">Send legacy message</button>
             <output id="parent-message"></output>
+            <div id="in-page-links" hidden>
+                <nav aria-label="Legacy in-page link test">
+                    <a href="#legacy-child-anchor">Jump to legacy child target</a>
+                    <a href="#parent-anchor">Jump to parent target</a>
+                </nav>
+                <div style="height: 420px"></div>
+                <h2 id="legacy-child-anchor">Legacy child anchor target</h2>
+                <div style="height: 240px"></div>
+            </div>
         </main>
         <script>
             window.iFrameResizer = {

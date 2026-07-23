@@ -72,7 +72,8 @@ npm start
 
 The child page lets you add and remove dynamic content. Its runtime reports every height change to
 the React parent, which updates the iframe so that the embedded page does not need its own vertical
-scrollbar.
+scrollbar. Links in the child demonstrate `inPageLinks` navigation to targets in both the child and
+parent documents.
 
 ### Props
 
@@ -88,6 +89,7 @@ scrollbar.
 | `resizeFrom` | `'parent' \| 'child'` | `'parent'` | v4 resize-event source compatibility |
 | `bodyMargin` | `string \| number \| null` | none | Body margin applied inside the child |
 | `heightCalculationMethod` | `HeightCalculationMethod` | `'auto'` | Child height measurement strategy |
+| `inPageLinks` | `boolean` | `false` | Forward hash-link navigation from child to parent |
 | `protocol` | `'auto' \| 'modern' \| 'legacy-v4'` | `'auto'` | Accepted child protocol |
 | `minHeight`, `minWidth` | `number` | `0` | Lower size limits in pixels |
 | `maxHeight`, `maxWidth` | `number` | none | Upper size limits in pixels |
@@ -125,9 +127,9 @@ Set `protocol='modern'` after every embedded application has migrated to disable
 messages. Use `protocol='legacy-v4'` only for diagnosis or when a known child must be forced onto the
 bridge.
 
-The bridge covers initialization, automatic height and width updates, manual resize requests and
-application messages in both directions. `checkOrigin`, `resizeFrom`, `bodyMargin` and the v4 height
-calculation method names are also mapped. Advanced v4 scrolling, anchor, page-info, mouse and close
+The bridge covers initialization, automatic height and width updates, manual resize requests,
+application messages and `inPageLinks` in both directions. `checkOrigin`, `resizeFrom`, `bodyMargin`
+and the v4 height calculation method names are also mapped. Advanced v4 page-info, mouse and close
 APIs are not emulated.
 
 ## Embedded application
@@ -150,6 +152,22 @@ The default export is `undefined` when it runs in a top-level window.
 `ResizeObserver` detects layout size changes. A `MutationObserver`, document load events and font
 loading cover changes that may not resize an already observed element directly. Notifications are
 coalesced with `requestAnimationFrame`.
+
+### In-page links
+
+Enable `inPageLinks` when hash links inside the child should reposition the parent page:
+
+```tsx
+<IframeResizer
+    inPageLinks
+    src='https://embedded.example.com/'
+    title='Embedded application'
+/>;
+```
+
+Links such as `<a href='#details'>` are intercepted by the child runtime. If `details` exists inside
+the child, the parent scrolls to its position within the iframe. If it does not exist in the child,
+the hash is forwarded to an element with a matching `id` or `name` in the parent document.
 
 ### Using `srcDoc`
 

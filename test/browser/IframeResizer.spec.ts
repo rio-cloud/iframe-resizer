@@ -55,6 +55,38 @@ test('connects to an origin-checked child on a different origin', async ({ page 
         .toBeGreaterThan(initialHeight);
 });
 
+test('forwards child in-page links to child and parent targets', async ({ page }) => {
+    await page.goto('/test/browser/parent.html?protocol=in-page-links');
+
+    const child = page.frameLocator('iframe');
+    await expect.poll(() => page.evaluate(() => window.browserTestState.ready)).toBe(true);
+
+    await child.getByRole('link', { name: 'Jump to child target' }).click();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(800);
+
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await child.getByRole('link', { name: 'Jump to parent target' }).click();
+    await expect
+        .poll(() => page.locator('#parent-anchor').evaluate(element => Math.abs(element.getBoundingClientRect().top)))
+        .toBeLessThan(2);
+});
+
+test('supports in-page links from an unmodified iframe-resizer 4.3 child', async ({ page }) => {
+    await page.goto('/test/browser/parent.html?protocol=legacy-in-page-links');
+
+    const child = page.frameLocator('iframe');
+    await expect.poll(() => page.evaluate(() => window.browserTestState.protocol)).toBe('legacy-v4');
+
+    await child.getByRole('link', { name: 'Jump to legacy child target' }).click();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(800);
+
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await child.getByRole('link', { name: 'Jump to parent target' }).click();
+    await expect
+        .poll(() => page.locator('#parent-anchor').evaluate(element => Math.abs(element.getBoundingClientRect().top)))
+        .toBeLessThan(2);
+});
+
 test('supports an unmodified iframe-resizer 4.3 child', async ({ page }) => {
     await page.goto('/test/browser/parent.html?protocol=legacy-v4');
 
@@ -149,4 +181,20 @@ test('allows a v4 parent to use the modern child runtime', async ({ page }) => {
 
     expect(await page.evaluate(() => window.sendLegacyParentMessage({ status: 'from-legacy-parent' }))).toBe(true);
     await expect(child.locator('#parent-message')).toHaveText('{"status":"from-legacy-parent"}');
+});
+
+test('allows a v4 parent to follow in-page links from the modern child runtime', async ({ page }) => {
+    await page.goto('/test/browser/legacy-in-page-links-parent.html?inPageLinks=true');
+
+    const child = page.frameLocator('iframe');
+    await expect.poll(() => page.evaluate(() => window.legacyParentState.ready)).toBe(true);
+
+    await child.getByRole('link', { name: 'Jump to child target' }).click();
+    await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(800);
+
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await child.getByRole('link', { name: 'Jump to parent target' }).click();
+    await expect
+        .poll(() => page.locator('#parent-anchor').evaluate(element => Math.abs(element.getBoundingClientRect().top)))
+        .toBeLessThan(2);
 });

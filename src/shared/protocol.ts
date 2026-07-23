@@ -54,11 +54,12 @@ export type ReadyMessage = ProtocolMessage & {
 
 export type ConnectMessage = ProtocolMessage & {
     bodyMargin?: string | number | null;
-    type: 'connect';
     direction: ResizeDirection;
     frameId: string;
     heightCalculationMethod?: HeightCalculationMethod;
+    inPageLinks?: boolean;
     resizeFrom?: ResizeFrom;
+    type: 'connect';
 };
 
 export type ConnectedMessage = ProtocolMessage & {
@@ -82,6 +83,17 @@ export type DataMessage = ProtocolMessage & {
     data: unknown;
 };
 
+export type InPageLinkMessage = ProtocolMessage & {
+    hash: string;
+    type: 'in-page-link';
+};
+
+export type ScrollToOffsetMessage = ProtocolMessage & {
+    type: 'scroll-to-offset';
+    x: number;
+    y: number;
+};
+
 export type DisconnectMessage = ProtocolMessage & {
     type: 'disconnect';
 };
@@ -91,8 +103,10 @@ export type PortProtocolMessage =
     | ConnectedMessage
     | DataMessage
     | DisconnectMessage
+    | InPageLinkMessage
     | ResizeMessage
-    | ResizeRequestMessage;
+    | ResizeRequestMessage
+    | ScrollToOffsetMessage;
 
 const isRecord = (value: unknown): value is Record<PropertyKey, unknown> => typeof value === 'object' && value !== null;
 
@@ -131,6 +145,15 @@ export const isResizeRequestMessage = (value: unknown): value is ResizeRequestMe
 
 export const isDataMessage = (value: unknown): value is DataMessage =>
     isProtocolMessage(value) && value.type === 'message' && 'data' in value;
+
+export const isInPageLinkMessage = (value: unknown): value is InPageLinkMessage =>
+    isProtocolMessage(value) && value.type === 'in-page-link' && typeof value.hash === 'string';
+
+export const isScrollToOffsetMessage = (value: unknown): value is ScrollToOffsetMessage =>
+    isProtocolMessage(value) &&
+    value.type === 'scroll-to-offset' &&
+    Number.isFinite(value.x) &&
+    Number.isFinite(value.y);
 
 export const isDisconnectMessage = (value: unknown): value is DisconnectMessage =>
     isProtocolMessage(value) && value.type === 'disconnect';

@@ -73,6 +73,7 @@ The most common mappings are:
 | `checkOrigin={false}` | supported compatibility alias, or `allowedOrigins='any'` |
 | `bodyMargin` | supported for v4 and modern children |
 | `heightCalculationMethod` | supported with the existing v4 method names |
+| `inPageLinks` | supported for child and parent anchor targets |
 | `resizeFrom` | supported; modern children use observers in either mode |
 | `direction='vertical'` | `direction='vertical'` |
 | `direction='horizontal'` | `direction='horizontal'` |
@@ -90,7 +91,6 @@ visual styles in the child application and use the native observer-based sizing 
 
 Features that need an explicit product requirement before being added include:
 
-- parent-page scrolling and in-page anchor forwarding;
 - automatic forwarding of mouse enter/leave events;
 - callbacks corresponding to `onClosed` and `onScroll`;
 - automatic domain synchronization.
@@ -105,12 +105,13 @@ The bridge supports both rollout directions for:
 - automatic height and width resizing;
 - manual resize requests;
 - `sendMessage` and message callbacks;
+- `inPageLinks` for anchors in the child or parent document;
 - `checkOrigin`, `resizeFrom`, `bodyMargin` and height calculation methods.
 
-It does not emulate advanced v4 methods or options such as scrolling, anchors, page information,
-mouse events, closing, custom calculation methods or body styling. The v4 package is used only as a
-development dependency for browser compatibility tests and is not included in the production
-bundle.
+It does not emulate advanced v4 methods or options such as arbitrary scrolling APIs, page
+information, mouse events, closing, custom calculation methods or body styling. The v4 package is
+used only as a development dependency for browser compatibility tests and is not included in the
+production bundle.
 
 ## No RIO CDN dependency
 

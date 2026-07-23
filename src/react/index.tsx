@@ -86,6 +86,17 @@ type ResizerProps = {
     heightCalculationMethod?: HeightCalculationMethod;
 
     /**
+     * Enables hash-link navigation initiated inside the child document.
+     *
+     * Targets inside the child scroll the parent page to the corresponding position in the iframe.
+     * If the child cannot find the target, the hash is forwarded to a matching `id` or `name` in
+     * the parent document.
+     *
+     * @defaultValue `false`
+     */
+    inPageLinks?: boolean;
+
+    /**
      * Maximum height, in CSS pixels, that may be applied to the iframe.
      *
      * When omitted, the reported height has no upper limit.
@@ -173,6 +184,7 @@ const IframeResizer = forwardRef<IframeResizerRef, IframeResizerProps>((props, r
         checkOrigin,
         direction = 'vertical',
         heightCalculationMethod = 'auto',
+        inPageLinks = false,
         maxHeight,
         maxWidth,
         minHeight = 0,
@@ -202,6 +214,7 @@ const IframeResizer = forwardRef<IframeResizerRef, IframeResizerProps>((props, r
         bodyMargin,
         direction,
         heightCalculationMethod,
+        inPageLinks,
         maxHeight,
         maxWidth,
         minHeight,
@@ -218,6 +231,7 @@ const IframeResizer = forwardRef<IframeResizerRef, IframeResizerProps>((props, r
         bodyMargin,
         direction,
         heightCalculationMethod,
+        inPageLinks,
         maxHeight,
         maxWidth,
         minHeight,
@@ -247,7 +261,7 @@ const IframeResizer = forwardRef<IframeResizerRef, IframeResizerProps>((props, r
             connectionRef.current?.disconnect();
             connectionRef.current = undefined;
         };
-    }, [allowedOriginsKey, bodyMargin, direction, heightCalculationMethod, protocol, resizeFrom]);
+    }, [allowedOriginsKey, bodyMargin, direction, heightCalculationMethod, inPageLinks, protocol, resizeFrom]);
 
     useImperativeHandle(
         ref,
