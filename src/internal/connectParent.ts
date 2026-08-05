@@ -160,6 +160,8 @@ export const connectParent = ({ getOptions, iframe }: ParentConnectionArguments)
     let activeOrigin: string | undefined;
     let activeProtocol: ConnectionProtocol | undefined;
     let connection: AbortController | undefined;
+    let visibilityObserver: MutationObserver | undefined;
+    let visibilityFrame: number | undefined;
 
     const closeModernPort = (notifyChild: boolean) => {
         if (notifyChild) {
@@ -183,6 +185,64 @@ export const connectParent = ({ getOptions, iframe }: ParentConnectionArguments)
         activeProtocol = undefined;
     };
 
+    const requestResize = (): boolean => {
+        if (activeProtocol === 'legacy-v4') {
+            iframe.contentWindow?.postMessage(createLegacyV4Command('resize'), {
+                targetOrigin: activeOrigin === 'null' ? '*' : (activeOrigin ?? '*'),
+            });
+            return true;
+        }
+
+        if (!activePort) {
+            return false;
+        }
+        activePort.postMessage(createProtocolMessage<ResizeRequestMessage>({ type: 'resize-request' }));
+        return true;
+    };
+
+    const stopObservingVisibility = () => {
+        visibilityObserver?.disconnect();
+        visibilityObserver = undefined;
+
+        if (visibilityFrame !== undefined) {
+            cancelAnimationFrame(visibilityFrame);
+            visibilityFrame = undefined;
+        }
+    };
+
+    const observeVisibility = () => {
+        if (visibilityObserver || !document.body) {
+            return;
+        }
+
+        visibilityObserver = new MutationObserver(() => {
+            if (visibilityFrame !== undefined) {
+                return;
+            }
+
+            visibilityFrame = requestAnimationFrame(() => {
+                visibilityFrame = undefined;
+
+                const options = getOptions();
+                const hasZeroHeight =
+                    (options.direction === 'vertical' || options.direction === 'both') && iframe.style.height === '0px';
+                const hasZeroWidth =
+                    (options.direction === 'horizontal' || options.direction === 'both') &&
+                    iframe.style.width === '0px';
+
+                if (iframe.offsetParent !== null && (hasZeroHeight || hasZeroWidth)) {
+                    requestResize();
+                }
+            });
+        });
+        visibilityObserver.observe(document.body, {
+            attributes: true,
+            characterData: true,
+            childList: true,
+            subtree: true,
+        });
+    };
+
     const applySize = (size: FrameSize, reason: IframeResizeEvent['reason'], protocol: ConnectionProtocol) => {
         const options = getOptions();
         const height = clamp(size.height, options.minHeight, options.maxHeight);
@@ -194,6 +254,17 @@ export const connectParent = ({ getOptions, iframe }: ParentConnectionArguments)
 
         if (options.direction === 'horizontal' || options.direction === 'both') {
             iframe.style.width = `${width}px`;
+        }
+
+        const hasZeroHeight =
+            (options.direction === 'vertical' || options.direction === 'both') && iframe.style.height === '0px';
+        const hasZeroWidth =
+            (options.direction === 'horizontal' || options.direction === 'both') && iframe.style.width === '0px';
+
+        if (hasZeroHeight || hasZeroWidth) {
+            observeVisibility();
+        } else {
+            stopObservingVisibility();
         }
 
         options.onResized?.({ height, iframe, protocol, reason, width });
@@ -383,22 +454,10 @@ export const connectParent = ({ getOptions, iframe }: ParentConnectionArguments)
             closeModernPort(true);
             activeOrigin = undefined;
             activeProtocol = undefined;
+            stopObservingVisibility();
             lifecycle.abort();
         },
-        requestResize: () => {
-            if (activeProtocol === 'legacy-v4') {
-                iframe.contentWindow?.postMessage(createLegacyV4Command('resize'), {
-                    targetOrigin: activeOrigin === 'null' ? '*' : (activeOrigin ?? '*'),
-                });
-                return true;
-            }
-
-            if (!activePort) {
-                return false;
-            }
-            activePort.postMessage(createProtocolMessage<ResizeRequestMessage>({ type: 'resize-request' }));
-            return true;
-        },
+        requestResize,
         sendMessage: data => {
             if (activeProtocol === 'legacy-v4') {
                 iframe.contentWindow?.postMessage(createLegacyV4Command('message', data), {

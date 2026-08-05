@@ -82,10 +82,10 @@ parent documents.
 
 | Prop | Type | Default | Purpose |
 | --- | --- | --- | --- |
-| `title` | `string` | required | Accessible name of the iframe |
+| `title` | `string` | `'iframe'` | Accessible name of the iframe; use a descriptive value when possible |
 | `allowedOrigins` | `'src' \| 'any' \| readonly string[]` | `'src'` | Origins allowed to connect |
 | `checkOrigin` | `boolean \| readonly string[]` | none | Deprecated v4 alias for `allowedOrigins` |
-| `direction` | `'vertical' \| 'horizontal' \| 'both'` | `'vertical'` | Dimensions controlled by the child |
+| `direction` | `'vertical' \| 'horizontal' \| 'both'` | `'both'` | Dimensions controlled by the child |
 | `resizeFrom` | `'parent' \| 'child'` | `'parent'` | v4 resize-event source compatibility |
 | `bodyMargin` | `string \| number \| null` | none | Body margin applied inside the child |
 | `heightCalculationMethod` | `HeightCalculationMethod` | `'auto'` | Child height measurement strategy |
@@ -130,6 +130,10 @@ In auto mode the modern `MessageChannel` protocol is preferred when both protoco
 Set `protocol='modern'` after every embedded application has migrated to disable legacy string
 messages. Use `protocol='legacy-v4'` only for diagnosis or when a known child must be forced onto the
 bridge.
+
+Iframes may be mounted inside initially hidden tabs, dialogs or dropdowns. If a child reports a zero
+dimension while hidden, the parent automatically requests a new measurement when the iframe becomes
+visible. No protocol or resize-direction override is required for this v4-compatible behavior.
 
 The bridge covers initialization, automatic height and width updates, manual resize requests,
 application messages and `inPageLinks` in both directions. `checkOrigin`, `resizeFrom`, `bodyMargin`

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Re-request iframe dimensions when an initially hidden iframe becomes visible, matching the
+  automatic visibility handling of iframe-resizer 4.x for both modern and legacy children.
+- Resize both dimensions by default so child-reported widths work without additional parent props.
+- Keep the React `title` prop optional and default it to `iframe`, matching the previous wrapper API.
+
 ## 1.0.0 - 2026-07-23
 
 - Rewritten as an ESM-only package for modern browsers.

@@ -9,7 +9,7 @@ and `iframe-resizer`.
 - The package is ESM-only.
 - React 18 and React 19 are supported. Older React versions are not supported.
 - The parent prop `url` is replaced by the native iframe prop `src`.
-- `title` is required for an accessible iframe.
+- `title` is optional and defaults to `iframe`; provide a descriptive value when possible.
 - The old unversioned `{ height }` global message is no longer accepted.
 - The child application must import `@rio-cloud/iframe-resizer/child`.
 - The connection validates the iframe window and origin, then moves communication to a private
@@ -25,7 +25,7 @@ Before:
 After:
 
 ```tsx
-<IframeResizer src='https://embedded.example.com/' title='Embedded application' />;
+<IframeResizer src='https://embedded.example.com/' />;
 ```
 
 Add this once to the embedded application:

@@ -124,6 +124,21 @@ test('supports an unmodified iframe-resizer 4.3 child', async ({ page }) => {
     await expect(child.locator('#parent-message')).toHaveText('{"status":"from-parent"}');
 });
 
+test('remeasures an initially hidden iframe-resizer 4.3 child when it becomes visible', async ({ page }) => {
+    await page.goto('/test/browser/parent.html?protocol=hidden-legacy-v4');
+
+    const iframe = page.getByTitle('Embedded browser test');
+    await expect.poll(() => page.evaluate(() => window.browserTestState.protocol)).toBe('legacy-v4');
+    await expect.poll(() => iframe.evaluate(element => element.style.height)).toBe('0px');
+
+    await page.getByRole('button', { name: 'Show legacy iframe' }).click();
+
+    await expect
+        .poll(() => iframe.evaluate(element => Number.parseFloat(element.style.height)))
+        .toBeGreaterThanOrEqual(180);
+    await expect.poll(() => iframe.evaluate(element => Number.parseFloat(element.style.width))).toBeGreaterThan(0);
+});
+
 test('maps v4 sizing options to the modern child', async ({ page }) => {
     await page.goto('/test/browser/parent.html?protocol=legacy-options');
 

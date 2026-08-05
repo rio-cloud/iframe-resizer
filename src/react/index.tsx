@@ -90,7 +90,7 @@ type ResizerProps = {
     /**
      * Selects which iframe dimensions are updated from measurements reported by the child.
      *
-     * @defaultValue `'vertical'`
+     * @defaultValue `'both'`
      */
     direction?: ResizeDirection;
 
@@ -189,9 +189,12 @@ type ResizerProps = {
     /**
      * Provides the accessible name for the embedded document.
      *
-     * This required prop is forwarded to the native iframe `title` attribute.
+     * This optional prop is forwarded to the native iframe `title` attribute. A descriptive title
+     * is recommended for accessibility; the backwards-compatible default is `iframe`.
+     *
+     * @defaultValue `'iframe'`
      */
-    title: string;
+    title?: string;
 };
 
 export type IframeResizerProps = Omit<ComponentPropsWithoutRef<'iframe'>, keyof ResizerProps> & ResizerProps;
@@ -201,7 +204,7 @@ const IframeResizer = forwardRef<IframeResizerRef, IframeResizerProps>((props, r
         allowedOrigins,
         bodyMargin,
         checkOrigin,
-        direction = 'vertical',
+        direction = 'both',
         heightCalculationMethod = 'auto',
         inPageLinks = false,
         maxHeight,
@@ -214,6 +217,7 @@ const IframeResizer = forwardRef<IframeResizerRef, IframeResizerProps>((props, r
         protocol = 'auto',
         resizeFrom = 'parent',
         style,
+        title = 'iframe',
         ...iframeProps
     } = props;
 
@@ -223,6 +227,7 @@ const IframeResizer = forwardRef<IframeResizerRef, IframeResizerProps>((props, r
     const effectiveAllowedOrigins: AllowedOrigins =
         allowedOrigins ??
         (checkOrigin === false ? 'any' : typeof checkOrigin !== 'boolean' && checkOrigin ? checkOrigin : 'src');
+
     const allowedOriginsKey =
         typeof effectiveAllowedOrigins === 'string'
             ? effectiveAllowedOrigins
@@ -293,7 +298,7 @@ const IframeResizer = forwardRef<IframeResizerRef, IframeResizerProps>((props, r
         []
     );
 
-    return <iframe {...iframeProps} ref={iframeRef} style={style} />;
+    return <iframe {...iframeProps} ref={iframeRef} style={style} title={title} />;
 });
 
 IframeResizer.displayName = 'IframeResizer';

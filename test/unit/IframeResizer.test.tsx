@@ -32,6 +32,12 @@ afterEach(() => {
 });
 
 describe('IframeResizer', () => {
+    it('uses a backwards-compatible default title when none is provided', () => {
+        render(<IframeResizer srcDoc='<!doctype html><title>Child</title>' />);
+
+        expect(screen.getByTitle('iframe').getAttribute('title')).toBe('iframe');
+    });
+
     it('passes native iframe attributes through and exposes the element', () => {
         const ref = createRef<IframeResizerRef>();
 
@@ -50,6 +56,7 @@ describe('IframeResizer', () => {
         expect(iframe.allow).toBe('clipboard-read; geolocation');
         expect(iframe.name).toBe('embedded-app');
         expect(ref.current?.element).toBe(iframe);
+        expect(getLatestOptions().direction).toBe('both');
         expect(getLatestOptions().heightCalculationMethod).toBe('max');
     });
 
