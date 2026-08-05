@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.1.0 - 2026-08-05
 
 - Re-request iframe dimensions when an initially hidden iframe becomes visible, matching the
   automatic visibility handling of iframe-resizer 4.x for both modern and legacy children.
