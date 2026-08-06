@@ -85,7 +85,7 @@ parent documents.
 | `title` | `string` | `'iframe'` | Accessible name of the iframe; use a descriptive value when possible |
 | `allowedOrigins` | `'src' \| 'any' \| readonly string[]` | `'src'` | Origins allowed to connect |
 | `checkOrigin` | `boolean \| readonly string[]` | none | Deprecated v4 alias for `allowedOrigins` |
-| `direction` | `'vertical' \| 'horizontal' \| 'both'` | `'both'` | Dimensions controlled by the child |
+| `direction` | `'vertical' \| 'horizontal' \| 'both'` | `'vertical'` | Dimensions controlled by the child |
 | `resizeFrom` | `'parent' \| 'child'` | `'parent'` | v4 resize-event source compatibility |
 | `bodyMargin` | `string \| number \| null` | none | Body margin applied inside the child |
 | `heightCalculationMethod` | `HeightCalculationMethod` | `'auto'` | Child height measurement strategy |

@@ -56,7 +56,7 @@ describe('IframeResizer', () => {
         expect(iframe.allow).toBe('clipboard-read; geolocation');
         expect(iframe.name).toBe('embedded-app');
         expect(ref.current?.element).toBe(iframe);
-        expect(getLatestOptions().direction).toBe('both');
+        expect(getLatestOptions().direction).toBe('vertical');
         expect(getLatestOptions().heightCalculationMethod).toBe('max');
     });
 

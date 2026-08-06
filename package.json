@@ -1,6 +1,6 @@
 {
     "name": "@rio-cloud/iframe-resizer",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "Secure automatic iframe resizing for React hosts and modern browser clients",
     "homepage": "https://github.com/rio-cloud/iframe-resizer",
     "repository": {

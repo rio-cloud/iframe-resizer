@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1 - 2026-08-06
+
+- Restore `direction='vertical'` as the default, matching iframe-resizer 4.x behavior. Applications that need the
+  child-reported width can opt in with `direction='both'`.
+
 ## 1.1.0 - 2026-08-05
 
 - Re-request iframe dimensions when an initially hidden iframe becomes visible, matching the

@@ -90,7 +90,7 @@ type ResizerProps = {
     /**
      * Selects which iframe dimensions are updated from measurements reported by the child.
      *
-     * @defaultValue `'both'`
+     * @defaultValue `'vertical'`
      */
     direction?: ResizeDirection;
 
@@ -204,7 +204,7 @@ const IframeResizer = forwardRef<IframeResizerRef, IframeResizerProps>((props, r
         allowedOrigins,
         bodyMargin,
         checkOrigin,
-        direction = 'both',
+        direction = 'vertical',
         heightCalculationMethod = 'auto',
         inPageLinks = false,
         maxHeight,

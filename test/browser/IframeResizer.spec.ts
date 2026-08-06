@@ -136,7 +136,6 @@ test('remeasures an initially hidden iframe-resizer 4.3 child when it becomes vi
     await expect
         .poll(() => iframe.evaluate(element => Number.parseFloat(element.style.height)))
         .toBeGreaterThanOrEqual(180);
-    await expect.poll(() => iframe.evaluate(element => Number.parseFloat(element.style.width))).toBeGreaterThan(0);
 });
 
 test('maps v4 sizing options to the modern child', async ({ page }) => {
