@@ -216,6 +216,7 @@ const IframeResizer = forwardRef<IframeResizerRef, IframeResizerProps>((props, r
         onResized,
         protocol = 'auto',
         resizeFrom = 'parent',
+        className,
         style,
         title = 'iframe',
         ...iframeProps
@@ -298,7 +299,9 @@ const IframeResizer = forwardRef<IframeResizerRef, IframeResizerProps>((props, r
         []
     );
 
-    return <iframe {...iframeProps} ref={iframeRef} style={style} title={title} />;
+    const iframeClassName = ['iframe-resizer', className].filter(Boolean).join(' ');
+
+    return <iframe {...iframeProps} className={iframeClassName} ref={iframeRef} style={style} title={title} />;
 });
 
 IframeResizer.displayName = 'IframeResizer';
