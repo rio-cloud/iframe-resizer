@@ -195,6 +195,11 @@ type ResizerProps = {
      * @defaultValue `'iframe'`
      */
     title?: string;
+
+    /**
+     * Optional class name added to the underlying iframe tag.
+     */
+    className?: string;
 };
 
 export type IframeResizerProps = Omit<ComponentPropsWithoutRef<'iframe'>, keyof ResizerProps> & ResizerProps;
@@ -216,7 +221,8 @@ const IframeResizer = forwardRef<IframeResizerRef, IframeResizerProps>((props, r
         onResized,
         protocol = 'auto',
         resizeFrom = 'parent',
-        style,
+        style = {},
+        className = '',
         title = 'iframe',
         ...iframeProps
     } = props;
@@ -298,7 +304,18 @@ const IframeResizer = forwardRef<IframeResizerRef, IframeResizerProps>((props, r
         []
     );
 
-    return <iframe {...iframeProps} ref={iframeRef} style={style} title={title} />;
+    const iframeClassName = ['iframe-resizer', className].filter(Boolean).join(' ');
+
+    return (
+        <iframe
+            {...iframeProps}
+            className={iframeClassName}
+            ref={iframeRef}
+            style={{ border: 'none', overflow: 'hidden', width: '100%', ...style }}
+            title={title}
+            data-testid='iframe-resizer'
+        />
+    );
 });
 
 IframeResizer.displayName = 'IframeResizer';
