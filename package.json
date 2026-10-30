@@ -70,7 +70,7 @@
         "@types/react": "18.3.28",
         "@types/react-dom": "18.3.7",
         "esbuild": "0.28.1",
-        "happy-dom": "20.11.1",
+        "happy-dom": "21.0.4",
         "iframe-resizer": "4.3.11",
         "react": "18.3.1",
         "react-dom": "18.3.1",
